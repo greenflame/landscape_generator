@@ -19,24 +19,82 @@ namespace landscape_generator
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Bitmap tmp = map_generator.double_map_to_image(map_generator.diamond_square(10, 0));
-            pictureBox1.Image = tmp;
-            tmp.Save("pic.png");
+            pictureBox1.Image = AGenerator.diamond_square(9, 60).toImage();
+            //tmp.Save("pic.png");
+
         }
     }
 
-    class map_generator
+    class AVertexMap
     {
-        public static Bitmap double_map_to_image(double[,] map)
-        {
-            int w = map.GetLength(0), h = map.GetLength(1);
-            Bitmap img = new Bitmap(w, h);
+        public double?[,] map { get; set; }
+        public int width { get; set; }
+        public int heigth { get; set; }
 
-            for (int i = 0; i < w; i++)
+        public AVertexMap(int width, int heigth)
+        {
+            this.width = width;
+            this.heigth = heigth;
+            map = new double?[width, heigth];
+        }
+
+        public void clear()
+        {
+            for (int i = 0; i < width; i++)
             {
-                for (int j = 0; j < h; j++)
+                for (int j = 0; j < heigth; j++)
                 {
-                    int c = 255 - (int)Math.Round(map[i, j]); ;
+                    map[i, j] = null;
+                }
+            }
+        }
+
+        public double? at(int x, int y)
+        {
+            int nx = x;
+            nx = x >= width ? 2 * (width - 1) - x : nx;
+            nx = x < 0 ? Math.Abs(x) : nx;
+
+            int ny = y;
+            ny = y >= heigth ? 2 * (heigth - 1) - y : ny;
+            ny = y < 0 ? Math.Abs(y) : ny;
+
+            return map[nx, ny];  //return point to avalibale area
+        }
+
+        public double? at(Point p)
+        {
+            return at(p.X,  p.Y);
+        }
+
+        public void setValue(int x, int y, double? value)
+        {
+            map[x, y] = value;
+        }
+
+        public void setValue(Point p, double? value)
+        {
+            setValue(p.X, p.Y, value);
+        }
+
+        public Bitmap toImage() //todo perevod oblasti znahenij
+        {
+            Bitmap img = new Bitmap(width, heigth);
+
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < heigth; j++)
+                {
+                    int c;
+                    if (map[i, j] == null)
+                    {
+                        c = 255;
+                    }
+                    else
+                    {
+                        c = 255 - (int)Math.Round(map[i, j].Value);
+                    }
+
                     if (c < 0)
                         c = 0;
                     if (c > 255)
@@ -47,65 +105,105 @@ namespace landscape_generator
 
             return img;
         }
+    }
 
-        public static double[,] diamond_square(int n, double noise)
+    class AGenerator
+    {
+
+        public static AVertexMap diamond_square(int n, double noise)
         {
             int a = (int)Math.Pow(2, n) + 1;
-            double[,] map = new double[a, a];
+            AVertexMap map = new AVertexMap(a, a);
 
-            for (int i = 0; i < a; i++)
-                for (int j = 0; j < a; j++)
-                {
-                    map[i, j] = 0;
-                }
-
-            map[0, 0] = 200;
-            map[0, a - 1] = 100;
-            map[a - 1, a - 1] = 0;
-            map[a - 1, 0] = 50;
+            map.map[0, 0] = 200;
+            map.map[a - 1, 0] = 100;
+            map.map[0, a - 1] = 100;
+            map.map[a - 1, a - 1] = 1;
 
             Random rand = new Random();
-            ds_recursion(ref map, new Rectangle(0, 0, a - 1, a - 1), noise, ref rand);
+            //square_recursion(map, new Rectangle(0, 0, a - 1, a - 1), noise, ref rand);
+
+            for (int i = a - 1; i != 0; i /= 2 )
+            {
+                deamond_square_iteration(map, i, noise, rand);
+            }
 
             return map;
         }
 
-        public static void ds_recursion(ref double[,] map, Rectangle rect, double noise, ref Random rand)
+        public static void deamond_square_iteration(AVertexMap map, int step, double noise, Random rand)
+        {
+            for (int i = 0; i < map.width; i += step)   //step 1
+            {
+                for (int j = 0; j < map.heigth; j += step)
+                {
+                    if ((i + j) % (2 * step) == 0 && map.at(i, j) == null)
+                    {
+                        double? value =
+                            (map.at(i - step, j - step) +
+                            map.at(i - step, j + step) +
+                            map.at(i + step, j - step) +
+                            map.at(i + step, j + step)) / 4 + (rand.NextDouble() * 2 - 1) * noise;
+
+                        map.setValue(i, j, value);
+                    }
+                }
+            }
+            
+            for (int i = 0; i < map.width; i += step)   //step 2
+            {
+                for (int j = 0; j < map.heigth; j += step)
+                {
+                    if ((i + j) % (2 * step) != 0 && map.at(i, j) == null)
+                    {
+                        double? value =
+                            (map.at(i, j - step) +
+                            map.at(i, j + step) +
+                            map.at(i + step, j) +
+                            map.at(i - step, j)) / 4 + (rand.NextDouble() * 2 - 1) * noise;
+
+                        map.setValue(i, j, value);
+                    }
+                }
+            }
+        }
+
+        public static void square_recursion(AVertexMap map, Rectangle rect, double noise, ref Random rand)
         {
             if (rect.Width == 1 && rect.Height == 1)
                 return;
 
             //mid
-            map[rect.X + rect.Width / 2, rect.Y + rect.Height / 2] =
-                (map[rect.Left, rect.Top] +
-                map[rect.Right, rect.Top] +
-                map[rect.Left, rect.Bottom] +
-                map[rect.Right, rect.Bottom]) / 4 + (rand.NextDouble() * 2 - 1) * noise;
+            map.map[rect.X + rect.Width / 2, rect.Y + rect.Height / 2] =
+                (map.map[rect.Left, rect.Top] +
+                map.map[rect.Right, rect.Top] +
+                map.map[rect.Left, rect.Bottom] +
+                map.map[rect.Right, rect.Bottom]) / 4 + (rand.NextDouble() * 2 - 1) * noise;
 
             //lmid
-            map[rect.Left, rect.Y + rect.Height / 2] =
-                (map[rect.Left, rect.Top] +
-                map[rect.Left, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
+            map.map[rect.Left, rect.Y + rect.Height / 2] =
+                (map.map[rect.Left, rect.Top] +
+                map.map[rect.Left, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
 
             //umid
-            map[rect.X + rect.Width / 2, rect.Top] =
-                (map[rect.Left, rect.Top] +
-                map[rect.Right, rect.Top]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
+            map.map[rect.X + rect.Width / 2, rect.Top] =
+                (map.map[rect.Left, rect.Top] +
+                map.map[rect.Right, rect.Top]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
 
             //rmid
-            map[rect.Right, rect.Y + rect.Height / 2] =
-                (map[rect.Right, rect.Top] +
-                map[rect.Right, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
+            map.map[rect.Right, rect.Y + rect.Height / 2] =
+                (map.map[rect.Right, rect.Top] +
+                map.map[rect.Right, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
 
             //dmid
-            map[rect.X + rect.Width / 2, rect.Bottom] =
-                (map[rect.Left, rect.Bottom] +
-                map[rect.Right, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
+            map.map[rect.X + rect.Width / 2, rect.Bottom] =
+                (map.map[rect.Left, rect.Bottom] +
+                map.map[rect.Right, rect.Bottom]) / 2 + (rand.NextDouble() * 2 - 1) * noise;
 
-            ds_recursion(ref map, new Rectangle(rect.X, rect.Y, rect.Width / 2, rect.Height / 2), noise, ref rand);
-            ds_recursion(ref map, new Rectangle(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height / 2), noise, ref rand);
-            ds_recursion(ref map, new Rectangle(rect.X, rect.Y + rect.Height / 2, rect.Width / 2, rect.Height / 2), noise, ref rand);
-            ds_recursion(ref map, new Rectangle(rect.X + rect.Width / 2, rect.Y + rect.Height / 2, rect.Width / 2, rect.Height / 2), noise, ref rand);
+            square_recursion(map, new Rectangle(rect.X, rect.Y, rect.Width / 2, rect.Height / 2), noise, ref rand);
+            square_recursion(map, new Rectangle(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height / 2), noise, ref rand);
+            square_recursion(map, new Rectangle(rect.X, rect.Y + rect.Height / 2, rect.Width / 2, rect.Height / 2), noise, ref rand);
+            square_recursion(map, new Rectangle(rect.X + rect.Width / 2, rect.Y + rect.Height / 2, rect.Width / 2, rect.Height / 2), noise, ref rand);
         }
     }
 }
