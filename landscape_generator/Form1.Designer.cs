@@ -1,4 +1,4 @@
-﻿namespace landscape_generator
+﻿namespace AMath3
 {
     partial class Form1
     {
