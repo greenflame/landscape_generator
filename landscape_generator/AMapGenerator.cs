@@ -8,72 +8,172 @@ using AMath3;
 
 namespace AMapGeneration
 {
-    class AMapGenerator
-    {
-        public AVertexMap v_map { set; get; }
-        public ALightMap l_map { set; get; }
-
-        int result_width, result_height, seed, smooth, levels;
-        double noise;
-
-        public AMapGenerator(int width, int height, int seed, int smooth, int levels, double noise)
-        {
-            this.result_width = width;
-            this.result_height = height;
-            this.seed = seed;
-            this.smooth = smooth;
-            this.levels = levels;
-            this.noise = noise;
-        }
-
-        public void build_light_map()
-        {
-            for (int i = 0; i < wi)
-        }
-
-
-    }
-
-    class ALMPolygon
-    {
-        public AVector3 normal { set; get; }
-        public double light { set; get; }
-    }
-
     class ALMCell
     {
-        public ALMPolygon[] polygons { set; get; }  //top, right, bottom, left
+        public AVector3[] normals { set; get; }
+        public double[] light { set; get; }  //top, right, bottom, left
         public double[] heights { set; get; }   //conners and mid. top left, top right, bottom righr, bottom left mid
+
+        public ALMCell()
+        {
+            normals = new AVector3[4];
+            light = new double[4];
+            heights = new double[5];
+        }
     }
 
     class ALightMap
     {
         public int width { get; set; }
         public int height { get; set; }
+        public AVertexMap v_map { set; get; }
         public ALMCell[,] map { set; get; }
 
-        public ALightMap(int width, int height)
+        public ALightMap(AVertexMap v_map)
         {
-            this.width = width;
-            this.height = height;
+            this.v_map = v_map;
+
+            this.width = v_map.width - 1;
+            this.height = v_map.height - 1;
+
+            map = new ALMCell[width, height];
         }
 
-        public void build_from_vertex_map(AVertexMap v_map)
+        public Bitmap render_image(Bitmap texture)
+        {
+            Bitmap result = new Bitmap(width * texture.Width, height * texture.Height);
+            Graphics g = Graphics.FromImage(result);
+
+            for (int i = 0; i < width; i++)
+                for (int j = 0; j < height; j++ )
+                {
+                    if (map[i, j].light[0] != 1)
+                    {
+                        Point[] points = new Point[3];
+                        points[0] = new Point(i * texture.Width, j * texture.Height);
+                        points[1] = new Point((i + 1) * texture.Width, j * texture.Height);
+                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
+                        g.FillPolygon(new SolidBrush(Color.Gray), points);
+                    }
+
+                    if (map[i, j].light[1] != 1)
+                    {
+                        Point[] points = new Point[3];
+                        points[0] = new Point((i + 1) * texture.Width, j * texture.Height);
+                        points[1] = new Point((i + 1) * texture.Width, (j + 1) * texture.Height);
+                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
+                        g.FillPolygon(new SolidBrush(Color.Gray), points);
+                    }
+                    
+                    if (map[i, j].light[2] != 1)
+                    {
+                        Point[] points = new Point[3];
+                        points[0] = new Point((i + 1) * texture.Width, (j + 1) * texture.Height);
+                        points[1] = new Point(i * texture.Width, (j + 1) * texture.Height);
+                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
+                        g.FillPolygon(new SolidBrush(Color.Gray), points);
+                    }
+                    
+                    if (map[i, j].light[3] != 1)
+                    {
+                        Point[] points = new Point[3];
+                        points[0] = new Point(i * texture.Width, (j + 1) * texture.Height);
+                        points[1] = new Point(i * texture.Width, j * texture.Height);
+                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
+                        g.FillPolygon(new SolidBrush(Color.Gray), points);
+                    }
+                }
+
+            g.Dispose();
+            return result;
+        }
+
+        public Bitmap render_cell(Bitmap result, Bitmap texture, int x, int y)  //todo ???
+        {
+            return result;
+        }
+
+        public void build_map()
         {
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                 {
-                    double[] h = new double[5]; //conners and mid heights
-                    h[0] = v_map.get(i, j).Value;
-                    h[1] = v_map.get(i + 1, j).Value;
-                    h[2] = v_map.get(i + 1, j + 1).Value;
-                    h[3] = v_map.get(i, j + 1).Value;
-                    h[4] = Math.Floor((h[0] + h[1] + h[2] + h[3]) / 4);
-
-                    map[i, j].heights = h;
-
-                    //todo and other all..
+                    map[i, j] = new ALMCell();
+                    build_cell_heights(i, j);
+                    build_cell_normals(i, j);
+                    build_cell_light(i, j);
                 }
+        }
+
+        private void build_cell_light(int x, int y) //todo xm)...
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (map[x, y].normals[i].x == 0 && map[x, y].normals[i].y == 0)
+                {
+                    map[x, y].light[i] = 1;
+                }
+                else
+                {
+                    map[x, y].light[i] = 0.5;
+                }
+
+            }
+        }
+
+        public AVector3 normal(APoint3 p1, APoint3 p2, APoint3 p3)
+        {
+            AVector3 v1 = new AVector3(p1, p2);
+            AVector3 v2 = new AVector3(p1, p3);
+            v1.turn_up();
+            v2.turn_up();
+
+            return new AVector3(v1.y * v2.z - v2.y * v1.z, v2.x * v1.z - v1.x * v2.z, v1.x * v2.y - v2.x * v1.y);   //todo check
+        }
+
+        public void build_cell_normals(int x, int y)
+        {
+            AVector3[] p = new AVector3[4];
+
+            p[0] = normal(
+                new APoint3(-0.5, -0.5, map[x, y].heights[0]),
+                new APoint3(0.5, -0.5, map[x, y].heights[1]),
+                new APoint3(0, 0, map[x, y].heights[4]));
+
+            p[1] = normal(
+                new APoint3(0.5, -0.5, map[x, y].heights[1]),
+                new APoint3(0.5, 0.5, map[x, y].heights[2]),
+                new APoint3(0, 0, map[x, y].heights[4]));
+
+            p[2] = normal(
+                new APoint3(0.5, 0.5, map[x, y].heights[2]),
+                new APoint3(-0.5, 0.5, map[x, y].heights[3]),
+                new APoint3(0, 0, map[x, y].heights[4]));
+
+            p[3] = normal(
+                new APoint3(-0.5, 0.5, map[x, y].heights[3]),
+                new APoint3(-0.5, -0.5, map[x, y].heights[0]),
+                new APoint3(0, 0, map[x, y].heights[4]));
+
+            map[x, y].normals = p;
+        }
+
+        public void build_cell_heights(int x, int y)
+        {
+            map[x, y].heights[0] = v_map.get(x, y).Value;   //conners and mid heights
+            map[x, y].heights[1] = v_map.get(x + 1, y).Value;
+            map[x, y].heights[2] = v_map.get(x + 1, y + 1).Value;
+            map[x, y].heights[3] = v_map.get(x, y + 1).Value;
+            map[x, y].heights[4] = /*Math.Floor*/(
+                (map[x, y].heights[0] +
+                map[x, y].heights[1] +
+                map[x, y].heights[2] +
+                map[x, y].heights[3]) / 4);
+
+            if (map[x, y].heights[4] % 0.5 != 0)
+            {
+                map[x, y].heights[4] = Math.Round(map[x, y].heights[4]);
+            }
         }
 
     }

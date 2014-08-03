@@ -19,6 +19,23 @@ namespace AMath3
             this.y = y;
             this.z = z;
         }
+
+        public AVector3(APoint3 begin, APoint3 end)
+        {
+            x = end.x - begin.x;
+            y = end.y - begin.y;
+            z = end.z - begin.z;
+        }
+
+        public void turn_up()
+        {
+            if (z < 0)
+            {
+                x *= -1;
+                y *= -1;
+                z *= -1;
+            }
+        }
     }
 
     class APoint3
@@ -48,6 +65,11 @@ namespace AMath3
             this.b = b;
             this.c = c;
             this.d = d;
+        }
+
+        internal AVector3 normal()
+        {
+            return new AVector3(a, b, c);
         }
     }
 
