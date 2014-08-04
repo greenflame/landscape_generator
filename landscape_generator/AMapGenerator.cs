@@ -47,50 +47,48 @@ namespace AMapGeneration
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++ )
                 {
-                    if (map[i, j].light[0] != 1)
-                    {
-                        Point[] points = new Point[3];
-                        points[0] = new Point(i * texture.Width, j * texture.Height);
-                        points[1] = new Point((i + 1) * texture.Width, j * texture.Height);
-                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
-                        g.FillPolygon(new SolidBrush(Color.Gray), points);
-                    }
-
-                    if (map[i, j].light[1] != 1)
-                    {
-                        Point[] points = new Point[3];
-                        points[0] = new Point((i + 1) * texture.Width, j * texture.Height);
-                        points[1] = new Point((i + 1) * texture.Width, (j + 1) * texture.Height);
-                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
-                        g.FillPolygon(new SolidBrush(Color.Gray), points);
-                    }
-                    
-                    if (map[i, j].light[2] != 1)
-                    {
-                        Point[] points = new Point[3];
-                        points[0] = new Point((i + 1) * texture.Width, (j + 1) * texture.Height);
-                        points[1] = new Point(i * texture.Width, (j + 1) * texture.Height);
-                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
-                        g.FillPolygon(new SolidBrush(Color.Gray), points);
-                    }
-                    
-                    if (map[i, j].light[3] != 1)
-                    {
-                        Point[] points = new Point[3];
-                        points[0] = new Point(i * texture.Width, (j + 1) * texture.Height);
-                        points[1] = new Point(i * texture.Width, j * texture.Height);
-                        points[2] = new Point((2 * i + 1) * texture.Width / 2, (2 * j + 1) * texture.Height / 2);   //mid
-                        g.FillPolygon(new SolidBrush(Color.Gray), points);
-                    }
+                    g.DrawImage(render_cell(texture, i, j), i * texture.Width, j * texture.Height);
                 }
 
             g.Dispose();
             return result;
         }
 
-        public Bitmap render_cell(Bitmap result, Bitmap texture, int x, int y)  //todo ???
+        public Bitmap render_cell(Bitmap texture, int i, int j)  //todo light
         {
+            Bitmap result = new Bitmap(texture);
+            Point[] border = new Point[3];
+
+            border[0] = new Point(0, 0);
+            border[1] = new Point(texture.Width, 0);
+            border[2] = new Point(texture.Width / 2, texture.Height / 2);   //mid
+            render_polygon(result, border, map[i, j].light[0]);
+
+            border[0] = new Point(texture.Width, 0);
+            border[1] = new Point(texture.Width, texture.Height);
+            render_polygon(result, border, map[i, j].light[1]);
+
+            border[0] = new Point(texture.Width, texture.Height);
+            border[1] = new Point(0, texture.Height);
+            render_polygon(result, border, map[i, j].light[2]);
+
+            border[0] = new Point(0, texture.Height);
+            border[1] = new Point(0, 0);
+            render_polygon(result, border, map[i, j].light[3]);
+
+            //g.DrawRectangle(new Pen(Color.Black), 0, 0, result.Width, result.Height);
+
             return result;
+        }
+
+        public void render_polygon(Bitmap cell, Point[] polygon, double light)
+        {
+            Graphics g = Graphics.FromImage(cell);
+
+            int c = (int)Math.Round(255 / 2 * (2 - light));
+            g.FillPolygon(new SolidBrush(Color.FromArgb(255, c, c, c)), polygon);
+
+            g.Dispose();
         }
 
         public void build_map()
@@ -109,15 +107,38 @@ namespace AMapGeneration
         {
             for (int i = 0; i < 4; i++)
             {
-                if (map[x, y].normals[i].x == 0 && map[x, y].normals[i].y == 0)
+                if (map[x, y].normals[i].x == 0 && map[x, y].normals[i].y == 0) //up
                 {
                     map[x, y].light[i] = 1;
                 }
-                else
+
+                if (map[x, y].normals[i].x > 0 && map[x, y].normals[i].y > 0)   //sun
+                {
+                    map[x, y].light[i] = 1.5;
+                }
+
+                if ((map[x, y].normals[i].x > 0 && map[x, y].normals[i].y == 0) ||
+                    (map[x, y].normals[i].x == 0 && map[x, y].normals[i].y > 0)) //almost sun
+                {
+                    map[x, y].light[i] = 1.25;
+                }
+
+                if ((map[x, y].normals[i].x > 0 && map[x, y].normals[i].y < 0) ||
+                    (map[x, y].normals[i].x < 0 && map[x, y].normals[i].y > 0)) //parallel rays
+                {
+                    map[x, y].light[i] = 0.9;
+                } 
+                
+                if ((map[x, y].normals[i].x == 0 && map[x, y].normals[i].y < 0) ||
+                    (map[x, y].normals[i].x < 0 && map[x, y].normals[i].y == 0)) //almost shadow
+                {
+                    map[x, y].light[i] = 0.7;
+                }
+
+                if (map[x, y].normals[i].x < 0 && map[x, y].normals[i].y < 0)   //shadow
                 {
                     map[x, y].light[i] = 0.5;
                 }
-
             }
         }
 
@@ -125,10 +146,10 @@ namespace AMapGeneration
         {
             AVector3 v1 = new AVector3(p1, p2);
             AVector3 v2 = new AVector3(p1, p3);
-            v1.turn_up();
-            v2.turn_up();
 
-            return new AVector3(v1.y * v2.z - v2.y * v1.z, v2.x * v1.z - v1.x * v2.z, v1.x * v2.y - v2.x * v1.y);   //todo check
+            AVector3 res = new AVector3(v1.y * v2.z - v2.y * v1.z, v2.x * v1.z - v1.x * v2.z, v1.x * v2.y - v2.x * v1.y);
+            res.turn_up();
+            return res;
         }
 
         public void build_cell_normals(int x, int y)
@@ -164,13 +185,13 @@ namespace AMapGeneration
             map[x, y].heights[1] = v_map.get(x + 1, y).Value;
             map[x, y].heights[2] = v_map.get(x + 1, y + 1).Value;
             map[x, y].heights[3] = v_map.get(x, y + 1).Value;
-            map[x, y].heights[4] = /*Math.Floor*/(
-                (map[x, y].heights[0] +
-                map[x, y].heights[1] +
-                map[x, y].heights[2] +
-                map[x, y].heights[3]) / 4);
 
-            if (map[x, y].heights[4] % 0.5 != 0)
+            map[x, y].heights[4] = 0;   //mid
+            for (int i = 0; i < 4; i++)
+                map[x, y].heights[4] += map[x, y].heights[i] / 4;
+
+
+            if (map[x, y].heights[4] % 0.5 != 0)    //todo can be incorrect
             {
                 map[x, y].heights[4] = Math.Round(map[x, y].heights[4]);
             }

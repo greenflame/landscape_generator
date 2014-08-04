@@ -20,14 +20,20 @@ namespace AMath3
 
         private void button1_Click(object sender, EventArgs e)
         {
-            AVertexMap v_map = new AVertexMap(17, 17);
-            v_map.generate(1, 6, 5, 5);
+            int scale = Convert.ToInt32(textBox_scale.Text);
+            int size = Convert.ToInt32(textBox_size.Text);
+            int seed = Convert.ToInt32(textBox_seed.Text);
+            int smooth = Convert.ToInt32(textBox_smooth.Text);
+            int levels = Convert.ToInt32(textBox_levels.Text);
+
+            AVertexMap v_map = new AVertexMap(size, size);
+            v_map.generate(1, seed, smooth, levels);
             ALightMap l_map = new ALightMap(v_map);
             l_map.build_map();
-            pictureBox1.Image = l_map.render_image(new Bitmap(20, 20));
+            pictureBox1.Image = l_map.render_image(new Bitmap(scale, scale));
 
             v_map.translate_range(0, 255);
-            pictureBox2.Image = scale_without_smoothing(v_map.to_image(), 20);
+            pictureBox2.Image = scale_without_smoothing(v_map.to_image(), scale);
         }
 
         public static Bitmap scale_without_smoothing(Bitmap img, int k)
