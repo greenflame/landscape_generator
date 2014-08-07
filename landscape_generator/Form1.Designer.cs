@@ -1,4 +1,4 @@
-﻿namespace AMath3
+﻿namespace AGeneration
 {
     partial class Form1
     {

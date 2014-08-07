@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AMath3
+namespace AGeneration
 {
 
     class AVector3
@@ -49,27 +49,6 @@ namespace AMath3
             this.x = x;
             this.y = y;
             this.z = z;
-        }
-    }
-
-    class APlane3
-    {
-        public double a { get; set; }
-        public double b { get; set; }
-        public double c { get; set; }
-        public double d { get; set; }
-
-        public APlane3(double a, double b, double c, double d)
-        {
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.d = d;
-        }
-
-        internal AVector3 normal()
-        {
-            return new AVector3(a, b, c);
         }
     }
 
