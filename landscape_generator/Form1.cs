@@ -20,26 +20,18 @@ namespace AGeneration
 
         private void button1_Click(object sender, EventArgs e)
         {
-            int scale = Convert.ToInt32(textBox_scale.Text);
-            int size = Convert.ToInt32(textBox_size.Text);
+            int cell_size = Convert.ToInt32(textBox_cell_size.Text);
+            int map_size = Convert.ToInt32(textBox_map_size.Text);
             int seed = Convert.ToInt32(textBox_seed.Text);
             int smooth = Convert.ToInt32(textBox_smooth.Text);
             int levels = Convert.ToInt32(textBox_levels.Text);
 
-            AVertexMap v_map = new AVertexMap(size, size);
-            v_map.generate(1, seed, smooth, levels);
-            //ALightMap l_map = new ALightMap(v_map);
-            //l_map.build();
-            //pictureBox1.Image = l_map.render_image(scale_without_smoothing(new Bitmap("grass.png"), new Size(scale, scale)));
-
-            //v_map.translate_range(0, 255);
-            //pictureBox2.Image = scale_without_smoothing(v_map.to_image(), scale);
-
+            AVertexMap v_map = new AVertexMap(map_size + 1, map_size + 1, 1, seed, smooth, levels);
             AHeightMap h_map = new AHeightMap(v_map);
             ALightMap2 l_map = new ALightMap2(v_map, h_map);
-            ATextureMap t_map = new ATextureMap();
+            ATextureMap t_map = new ATextureMap(h_map, new Size(cell_size, cell_size));
 
-            Bitmap res = t_map.generate_simple_map(size - 1, size - 1);
+            Bitmap res = t_map.generate_simple_map();
             l_map.render_light_layer(res);
             pictureBox1.Image = res;
         }
