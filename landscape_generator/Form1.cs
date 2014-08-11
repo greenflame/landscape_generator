@@ -27,8 +27,8 @@ namespace AGeneration
             int levels = Convert.ToInt32(textBox_levels.Text);
 
             AVertexMap v_map = new AVertexMap(map_size + 1, map_size + 1, 1, seed, smooth, levels);
-            v_map.translate_range(0, 255);
-            pictureBox1.Image = scale_without_smoothing(v_map.to_image(), cell_size);
+            ALightMap l_map = new ALightMap(v_map);
+            pictureBox1.Image = l_map.to_image(cell_size, cell_size);
 
             //AVertexMap v_map = new AVertexMap(map_size + 1, map_size + 1, 1, seed, smooth, levels);
             //AHeightMap h_map = new AHeightMap(v_map);
