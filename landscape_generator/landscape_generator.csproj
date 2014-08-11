@@ -44,11 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AHeightMap.cs" />
-    <Compile Include="ALightMap2.cs" />
     <Compile Include="ALightMap.cs" />
     <Compile Include="AMath3.cs" />
-    <Compile Include="ATextureMap.cs" />
     <Compile Include="AVertexMap.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

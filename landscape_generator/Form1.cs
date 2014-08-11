@@ -27,13 +27,17 @@ namespace AGeneration
             int levels = Convert.ToInt32(textBox_levels.Text);
 
             AVertexMap v_map = new AVertexMap(map_size + 1, map_size + 1, 1, seed, smooth, levels);
-            AHeightMap h_map = new AHeightMap(v_map);
-            ALightMap2 l_map = new ALightMap2(v_map, h_map);
-            ATextureMap t_map = new ATextureMap(h_map, new Size(cell_size, cell_size));
+            v_map.translate_range(0, 255);
+            pictureBox1.Image = scale_without_smoothing(v_map.to_image(), cell_size);
 
-            Bitmap res = t_map.generate_simple_map();
-            l_map.render_light_layer(res);
-            pictureBox1.Image = res;
+            //AVertexMap v_map = new AVertexMap(map_size + 1, map_size + 1, 1, seed, smooth, levels);
+            //AHeightMap h_map = new AHeightMap(v_map);
+            //ALightMap2 l_map = new ALightMap2(v_map, h_map);
+            //ATextureMap t_map = new ATextureMap(h_map, new Size(cell_size, cell_size));
+
+            //Bitmap res = t_map.generate_simple_map();
+            //l_map.render_light_layer(res);
+            //pictureBox1.Image = res;
         }
 
         public static Bitmap scale_without_smoothing(Bitmap img, int k)

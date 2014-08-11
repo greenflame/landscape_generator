@@ -2,8 +2,6 @@ C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\bin\Debug\land
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\bin\Debug\landscape_generator.exe
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\bin\Debug\landscape_generator.pdb
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.csprojResolveAssemblyReference.cache
-C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.Form1.resources
-C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.Properties.Resources.resources
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.csproj.GenerateResource.Cache
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.exe
 C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\landscape_generator.pdb
@@ -16,3 +14,5 @@ C:\Users\Alexandr\Documents\landscape_generator\landscape_generator\obj\Debug\la
 C:\Users\Alexandr\Documents\landscape_generator\landscape_generator\obj\Debug\landscape_generator.csproj.GenerateResource.Cache
 C:\Users\Alexandr\Documents\landscape_generator\landscape_generator\obj\Debug\AGeneration.Form1.resources
 C:\Users\Alexandr\Documents\landscape_generator\landscape_generator\obj\Debug\AGeneration.Properties.Resources.resources
+C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\AGeneration.Form1.resources
+C:\Users\Alexandr\Desktop\landscape_generator\landscape_generator\obj\Debug\AGeneration.Properties.Resources.resources
