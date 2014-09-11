@@ -56,11 +56,11 @@ namespace AGeneration
         void calculate_light_from_normal_old()
         {
             if (normal.x == 0 && normal.y == 0) { light = 1; }  //up
-            if (normal.x > 0 && normal.y > 0) { light = 1.5; }  //sun
-            if ((normal.x == 0 && normal.y > 0) || (normal.x > 0 && normal.y == 0)) { light = 1.25; }    //almost sun
-            if ((normal.x > 0 && normal.y < 0) || (normal.x < 0 && normal.y > 0)) { light = 1.1; }  //rib
-            if ((normal.x == 0 && normal.y < 0) || (normal.x < 0 && normal.y == 0)) { light = 0.75; }    //almost shadow
-            if (normal.x < 0 && normal.y < 0) { light = 0.5; }  //shadow
+            if (normal.x < 0 && normal.y < 0) { light = 1.5; }  //sun
+            if ((normal.x == 0 && normal.y < 0) || (normal.x < 0 && normal.y == 0)) { light = 1.25; }    //almost sun
+            if ((normal.x < 0 && normal.y > 0) || (normal.x > 0 && normal.y < 0)) { light = 1.1; }  //rib
+            if ((normal.x == 0 && normal.y > 0) || (normal.x > 0 && normal.y == 0)) { light = 0.75; }    //almost shadow
+            if (normal.x > 0 && normal.y > 0) { light = 0.5; }  //shadow
         }
 
         public Point[] to_point_array(int cell_width, int cell_height)
